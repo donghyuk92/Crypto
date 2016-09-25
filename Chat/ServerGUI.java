@@ -12,14 +12,13 @@ ServerGUI extends JFrame implements ActionListener, WindowListener {
 
 	private static final long serialVersionUID = 1L;
 	// the stop and start buttons
-	private JButton stopStart;
+	private JButton stopStart, keyGen, sendPubKey, saveFile, loadFile;
 	// JTextArea for the chat room and the events
 	private JTextArea chat, event;
 	// The port number
 	private JTextField tPortNumber;
 	// my server
 	private Server server;
-
 
 	// server constructor that receive the port to listen to for connection as parameter
 	ServerGUI(int port) {
@@ -33,16 +32,30 @@ ServerGUI extends JFrame implements ActionListener, WindowListener {
 		// to stop or start the server, we start with "Start"
 		stopStart = new JButton("Start");
 		stopStart.addActionListener(this);
+		keyGen = new JButton("Key generation");
+		keyGen.addActionListener(this);
+		sendPubKey = new JButton("Send public key");
+		sendPubKey.addActionListener(this);
+		sendPubKey.setEnabled(false);
+		saveFile = new JButton("save key");
+		saveFile.addActionListener(this);
+		saveFile.setEnabled(false);
+		loadFile = new JButton("loadFile key");
+		loadFile.addActionListener(this);
 		north.add(stopStart);
+		north.add(keyGen);
+		north.add(sendPubKey);
+		north.add(saveFile);
+		north.add(loadFile);
 		add(north, BorderLayout.NORTH);
 
 		// the event and chat room
-		JPanel center = new JPanel(new GridLayout(2,1));
-		chat = new JTextArea(80,80);
+		JPanel center = new JPanel(new GridLayout(2, 1));
+		chat = new JTextArea(80, 80);
 		chat.setEditable(false);
 		appendRoom("Chat room.\n");
 		center.add(new JScrollPane(chat));
-		event = new JTextArea(80,80);
+		event = new JTextArea(80, 80);
 		event.setEditable(false);
 		appendEvent("Events log.\n");
 		center.add(new JScrollPane(event));
@@ -50,7 +63,7 @@ ServerGUI extends JFrame implements ActionListener, WindowListener {
 
 		// need to be informed when the user click the close button on the frame
 		addWindowListener(this);
-		setSize(400, 600);
+		setSize(800, 600);
 		setVisible(true);
 	}
 
@@ -60,6 +73,7 @@ ServerGUI extends JFrame implements ActionListener, WindowListener {
 		chat.append(str);
 		chat.setCaretPosition(chat.getText().length() - 1);
 	}
+
 	void appendEvent(String str) {
 		event.append(str);
 		event.setCaretPosition(chat.getText().length() - 1);
@@ -68,8 +82,32 @@ ServerGUI extends JFrame implements ActionListener, WindowListener {
 
 	// start or stop where clicked
 	public void actionPerformed(ActionEvent e) {
+		Object o = e.getSource();
+
+		if (o == keyGen) {
+			//client.sendMessage(new ChatMessage(ChatMessage.WHOISIN, ""));
+			appendRoom("key generation\n");
+			saveFile.setEnabled(true);
+			return;
+		}
+
+		if (o == sendPubKey) {
+			appendRoom("send public key\n");
+			return;
+		}
+
+		if (o == saveFile) {
+			appendRoom("save file\n");
+			return;
+		}
+
+		if (o == loadFile) {
+			appendRoom("load file\n");
+			return;
+		}
+
 		// if running we have to stop
-		if(server != null) {
+		if (server != null) {
 			server.stop();
 			server = null;
 			tPortNumber.setEditable(true);
@@ -80,8 +118,7 @@ ServerGUI extends JFrame implements ActionListener, WindowListener {
 		int port;
 		try {
 			port = Integer.parseInt(tPortNumber.getText().trim());
-		}
-		catch(Exception er) {
+		} catch (Exception er) {
 			appendEvent("Invalid port number");
 			return;
 		}
@@ -90,6 +127,7 @@ ServerGUI extends JFrame implements ActionListener, WindowListener {
 		// and start it as a thread
 		new ServerRunning().start();
 		stopStart.setText("Stop");
+		sendPubKey.setEnabled(true);
 		tPortNumber.setEditable(false);
 	}
 
@@ -105,11 +143,10 @@ ServerGUI extends JFrame implements ActionListener, WindowListener {
 	 */
 	public void windowClosing(WindowEvent e) {
 		// if my Chat.Server exist
-		if(server != null) {
+		if (server != null) {
 			try {
-				server.stop();			// ask the server to close the conection
-			}
-			catch(Exception eClose) {
+				server.stop();            // ask the server to close the conection
+			} catch (Exception eClose) {
 			}
 			server = null;
 		}
@@ -117,13 +154,25 @@ ServerGUI extends JFrame implements ActionListener, WindowListener {
 		dispose();
 		System.exit(0);
 	}
+
 	// I can ignore the other WindowListener method
-	public void windowClosed(WindowEvent e) {}
-	public void windowOpened(WindowEvent e) {}
-	public void windowIconified(WindowEvent e) {}
-	public void windowDeiconified(WindowEvent e) {}
-	public void windowActivated(WindowEvent e) {}
-	public void windowDeactivated(WindowEvent e) {}
+	public void windowClosed(WindowEvent e) {
+	}
+
+	public void windowOpened(WindowEvent e) {
+	}
+
+	public void windowIconified(WindowEvent e) {
+	}
+
+	public void windowDeiconified(WindowEvent e) {
+	}
+
+	public void windowActivated(WindowEvent e) {
+	}
+
+	public void windowDeactivated(WindowEvent e) {
+	}
 
 	/*
 	 * A thread to run the Chat.Server
@@ -138,6 +187,5 @@ ServerGUI extends JFrame implements ActionListener, WindowListener {
 			server = null;
 		}
 	}
-
 }
 

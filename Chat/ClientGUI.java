@@ -18,7 +18,7 @@ public class ClientGUI extends JFrame implements ActionListener {
 	// to hold the server address an the port number
 	private JTextField tfServer, tfPort;
 	// to Logout and get the list of the users
-	private JButton login, logout, whoIsIn;
+	private JButton login, logout, keyGen, sendPubKey, saveFile, loadFile;
 	// for the chat room
 	private JTextArea ta;
 	// if it is for connection
@@ -74,18 +74,28 @@ public class ClientGUI extends JFrame implements ActionListener {
 		logout = new JButton("Logout");
 		logout.addActionListener(this);
 		logout.setEnabled(false);        // you have to login before being able to logout
-		whoIsIn = new JButton("Who is in");
-		whoIsIn.addActionListener(this);
-		whoIsIn.setEnabled(false);        // you have to login before being able to Who is in
+		keyGen = new JButton("Key generation");
+		keyGen.addActionListener(this);
+		sendPubKey = new JButton("Send public key");
+		sendPubKey.addActionListener(this);
+		sendPubKey.setEnabled(false);
+		saveFile = new JButton("save key");
+		saveFile.addActionListener(this);
+		saveFile.setEnabled(false);
+		loadFile = new JButton("loadFile key");
+		loadFile.addActionListener(this);
 
 		JPanel southPanel = new JPanel();
 		southPanel.add(login);
 		southPanel.add(logout);
-		southPanel.add(whoIsIn);
+		southPanel.add(keyGen);
+		southPanel.add(sendPubKey);
+		southPanel.add(saveFile);
+		southPanel.add(loadFile);
 		add(southPanel, BorderLayout.SOUTH);
 
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
-		setSize(600, 600);
+		setSize(800, 600);
 		setVisible(true);
 		tf.requestFocus();
 
@@ -102,7 +112,7 @@ public class ClientGUI extends JFrame implements ActionListener {
 	void connectionFailed() {
 		login.setEnabled(true);
 		logout.setEnabled(false);
-		whoIsIn.setEnabled(false);
+		sendPubKey.setEnabled(false);
 		label.setText("Enter your username below");
 		tf.setText("Anonymous");
 		// reset port number and host name as a construction time
@@ -126,9 +136,26 @@ public class ClientGUI extends JFrame implements ActionListener {
 			client.sendMessage(new ChatMessage(ChatMessage.LOGOUT, ""));
 			return;
 		}
-		// if it the who is in button
-		if (o == whoIsIn) {
-			client.sendMessage(new ChatMessage(ChatMessage.WHOISIN, ""));
+
+		if (o == keyGen) {
+			//client.sendMessage(new ChatMessage(ChatMessage.WHOISIN, ""));
+			display("key generation");
+			saveFile.setEnabled(true);
+			return;
+		}
+
+		if (o == sendPubKey) {
+			display("send public key");
+			return;
+		}
+
+		if (o == saveFile) {
+			display("save file");
+			return;
+		}
+
+		if (o == loadFile) {
+			display("load file");
 			return;
 		}
 
@@ -175,7 +202,7 @@ public class ClientGUI extends JFrame implements ActionListener {
 			login.setEnabled(false);
 			// enable the 2 buttons
 			logout.setEnabled(true);
-			whoIsIn.setEnabled(true);
+			sendPubKey.setEnabled(true);
 			// disable the Chat.Server and Port JTextField
 			tfServer.setEditable(false);
 			tfPort.setEditable(false);
@@ -183,6 +210,10 @@ public class ClientGUI extends JFrame implements ActionListener {
 			tf.addActionListener(this);
 		}
 
+	}
+
+	private void display(String msg) {
+		this.append(msg + "\n");        // append to the Client.ClientGUI JTextArea (or whatever)
 	}
 
 	// to start the whole thing the server
