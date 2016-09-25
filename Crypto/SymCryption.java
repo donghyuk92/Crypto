@@ -1,5 +1,8 @@
-import java.security.*;
-import javax.crypto.*;
+package Crypto;
+
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import java.security.Key;
 
 public class SymCryption {
     public static void main(String[] args) throws Exception
