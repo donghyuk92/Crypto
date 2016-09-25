@@ -1,8 +1,14 @@
 package Chat;
 
+import Crypto.RSACryption;
+import File.FileUtil;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.IOException;
+import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
 
 
 /*
@@ -28,6 +34,10 @@ public class ClientGUI extends JFrame implements ActionListener {
 	// the default port number
 	private int defaultPort;
 	private String defaultHost;
+
+	private RSACryption cryption;
+	private FileUtil fileUtil;
+	private KeyPair keyPair;
 
 	// Constructor connection receiving a socket number
 	ClientGUI(String host, int port) {
@@ -99,6 +109,8 @@ public class ClientGUI extends JFrame implements ActionListener {
 		setVisible(true);
 		tf.requestFocus();
 
+		cryption = new RSACryption();
+		fileUtil = new FileUtil();
 	}
 
 	// called by the Client.Client to append text in the TextArea
@@ -138,8 +150,15 @@ public class ClientGUI extends JFrame implements ActionListener {
 		}
 
 		if (o == keyGen) {
-			//client.sendMessage(new ChatMessage(ChatMessage.WHOISIN, ""));
 			display("key generation");
+			try {
+				cryption.keyGen();
+			} catch (NoSuchAlgorithmException e1) {
+				e1.printStackTrace();
+			}
+
+			cryption.getPrivateKey();
+
 			saveFile.setEnabled(true);
 			return;
 		}
@@ -151,11 +170,25 @@ public class ClientGUI extends JFrame implements ActionListener {
 
 		if (o == saveFile) {
 			display("save file");
+			try {
+				fileUtil.serializeDataOut(cryption.getKeyPair());
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
 			return;
 		}
 
 		if (o == loadFile) {
 			display("load file");
+			try {
+				keyPair = fileUtil.serializeDataIn();
+				for (byte b : keyPair.getPublic().getEncoded()) System.out.printf("%02X ", b);
+				System.out.println("\n Private Key Length : " + keyPair.getPublic().getEncoded().length + " byte");
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			} catch (ClassNotFoundException e1) {
+				e1.printStackTrace();
+			}
 			return;
 		}
 

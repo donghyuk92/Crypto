@@ -5,48 +5,70 @@ import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import java.security.*;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Scanner;
 
 public class RSACryption {
-    public static void main(String[] args) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-        KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
-        generator.initialize(2048);
-        KeyPair keyPair = generator.generateKeyPair();
-        PublicKey publicKey = keyPair.getPublic();
-        PrivateKey privateKey = keyPair.getPrivate();
+	private PublicKey publicKey;
+	private PrivateKey privateKey;
+	private KeyPair keyPair;
 
+	public void keyGen() throws NoSuchAlgorithmException {
+		System.out.println("\n=== RSA Key Generation ===");
+		KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+		generator.initialize(2048);
+		keyPair = generator.generateKeyPair();
+		publicKey = keyPair.getPublic();
+		privateKey = keyPair.getPrivate();
 
-        System.out.println("\n=== RSA Key Generation ===");
-        byte[] pubk = publicKey.getEncoded();
-        byte[] prik = privateKey.getEncoded();
-        System.out.print("\n Public Key : ");
-        for (byte b : pubk) System.out.printf("%02X ", b);
-        System.out.println("\n Public Key Length : " + pubk.length + " byte");
-        System.out.print("\n Private Key : ");
-        for (byte b : prik) System.out.printf("%02X ", b);
-        System.out.println("\n Private Key Length : " + prik.length + " byte");
+		for (byte b : publicKey.getEncoded()) System.out.printf("%02X ", b);
+		System.out.println("\n Private Key Length : " + publicKey.getEncoded().length + " byte");
+	}
 
-        System.out.println("\n=== RSA Encryption ===");
-        Scanner s = new Scanner(System.in);
-        System.out.print("Input the plaintext to be encrypted... = ");
-        String text = s.next();
-        byte[] t0 = text.getBytes();
-        System.out.print("\n Plaintext : "+text+"\n");
-        for(byte b: t0) System.out.printf("%02X ", b);
-        System.out.println("\n Plaintext Length : "+t0.length+ " byte" );
+	public void encryptMessage(String plainText) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+		System.out.print("\n Plaintext : " + plainText + "\n");
+		byte[] t0 = plainText.getBytes();
+		for (byte b : t0) System.out.printf("%02X ", b);
+		System.out.println("\n Plaintext Length : " + t0.length + " byte");
 
-        Cipher cipher = Cipher.getInstance("RSA");
-        cipher.init(Cipher.ENCRYPT_MODE, publicKey);
-        byte[] b0 = cipher.doFinal(t0);
-        System.out.print("\n\n Ciphertext : ");
-        for(byte b: b0) System.out.printf("%02X ", b);
-        System.out.println("\n Ciphertext Length : "+b0.length+ " byte" );
+		System.out.println("\n=== RSA Encryption ===");
+		Cipher cipher = Cipher.getInstance("RSA");
+		cipher.init(Cipher.ENCRYPT_MODE, publicKey);
+		byte[] b0 = cipher.doFinal(t0);
+		System.out.print("\n\n Ciphertext : ");
+		for (byte b : b0) System.out.printf("%02X ", b);
+		System.out.println("\n Ciphertext Length : " + b0.length + " byte");
+	}
 
-        System.out.println("=== RSA Decryption ===");
-        cipher.init(Cipher.DECRYPT_MODE, privateKey);
-        byte[] b1 = cipher.doFinal(b0);
-        System.out.print("\n Recovered Plaintext : "+ new String(b1) +"\n");
-        for(byte b: b1) System.out.printf("%02X ", b);
-        System.out.println("\n Recovered Plaintext Length : "+b1.length+ " byte" );
-    }
+	public void decryptMessage(byte[] cipherText) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+		System.out.println("=== RSA Decryption ===");
+		Cipher cipher = Cipher.getInstance("RSA");
+		cipher.init(Cipher.DECRYPT_MODE, privateKey);
+		byte[] b1 = cipher.doFinal(cipherText);
+		System.out.print("\n Recovered Plaintext : " + new String(b1) + "\n");
+		for (byte b : b1) System.out.printf("%02X ", b);
+		System.out.println("\n Recovered Plaintext Length : " + b1.length + " byte");
+	}
+
+	public KeyPair getKeyPair() {
+		return this.keyPair;
+	}
+
+	public PublicKey getPublicKey() {
+		return this.publicKey;
+	}
+
+	public PublicKey getPublicKey(byte[] encodedKey) throws NoSuchAlgorithmException, InvalidKeySpecException {
+		return KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(encodedKey));
+	}
+
+	public PrivateKey getPrivateKey() {
+		return this.privateKey;
+	}
+
+	public PrivateKey getPrivateKey(byte[] encodedKey) throws NoSuchAlgorithmException, InvalidKeySpecException {
+		return KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(encodedKey));
+	}
 }
