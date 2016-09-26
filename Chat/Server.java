@@ -248,7 +248,11 @@ public class Server {
 						display(username + " disconnected with a LOGOUT message.");
 						keepGoing = false;
 						break;
-					case ChatMessage.WHOISIN:
+					case ChatMessage.SENDKEY:
+
+//						for (byte b : cm.getEncodedKey()) System.out.printf("%02X ", b);
+//						System.out.println("\n Private Key Length : " + cm.getEncodedKey().length + " byte");
+
 						writeMsg("List of the users connected at " + sdf.format(new Date()) + "\n");
 						// scan al the users connected
 						for (int i = 0; i < al.size(); ++i) {

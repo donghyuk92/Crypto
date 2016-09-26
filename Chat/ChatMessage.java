@@ -13,12 +13,13 @@ public class ChatMessage implements Serializable {
 	protected static final long serialVersionUID = 1112122200L;
 
 	// The different types of message sent by the Client.Client
-	// WHOISIN to receive the list of the users connected
+	// SENDKEY to receive the list of the users connected
 	// MESSAGE an ordinary message
 	// LOGOUT to disconnect from the Chat.Server
-	static final int WHOISIN = 0, MESSAGE = 1, LOGOUT = 2;
+	static final int SENDKEY = 0, MESSAGE = 1, LOGOUT = 2;
 	private int type;
 	private String message;
+	private byte[] encodedKey;
 
 	// constructor
 	ChatMessage(int type, String message) {
@@ -27,11 +28,24 @@ public class ChatMessage implements Serializable {
 	}
 
 	// getters
-	int getType() {
+	public int getType() {
 		return type;
 	}
 
-	String getMessage() {
+	public void setMessage(int type, String message) {
+		this.type = type;
+		this.message = message;
+	}
+
+	public void setKey(byte[] encodedKey) {
+		this.encodedKey = encodedKey;
+	}
+
+	public byte[] getEncodedKey() {
+		return this.encodedKey;
+	}
+
+	public String getMessage() {
 		return message;
 	}
 }

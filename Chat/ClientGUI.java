@@ -38,6 +38,7 @@ public class ClientGUI extends JFrame implements ActionListener {
 	private RSACryption cryption;
 	private FileUtil fileUtil;
 	private KeyPair keyPair;
+	private ChatMessage chatMessage;
 
 	// Constructor connection receiving a socket number
 	ClientGUI(String host, int port) {
@@ -92,7 +93,7 @@ public class ClientGUI extends JFrame implements ActionListener {
 		saveFile = new JButton("save key");
 		saveFile.addActionListener(this);
 		saveFile.setEnabled(false);
-		loadFile = new JButton("loadFile key");
+		loadFile = new JButton("load key");
 		loadFile.addActionListener(this);
 
 		JPanel southPanel = new JPanel();
@@ -111,6 +112,7 @@ public class ClientGUI extends JFrame implements ActionListener {
 
 		cryption = new RSACryption();
 		fileUtil = new FileUtil();
+		chatMessage = new ChatMessage(ChatMessage.MESSAGE, "default");
 	}
 
 	// called by the Client.Client to append text in the TextArea
@@ -145,31 +147,36 @@ public class ClientGUI extends JFrame implements ActionListener {
 		Object o = e.getSource();
 		// if it is the Logout button
 		if (o == logout) {
-			client.sendMessage(new ChatMessage(ChatMessage.LOGOUT, ""));
+			chatMessage.setMessage(ChatMessage.LOGOUT, "");
+			client.sendMessage(chatMessage);
 			return;
 		}
 
 		if (o == keyGen) {
 			display("key generation");
 			try {
-				cryption.keyGen();
+				this.keyPair = cryption.keyGen();
 			} catch (NoSuchAlgorithmException e1) {
 				e1.printStackTrace();
 			}
-
-			cryption.getPrivateKey();
-
 			saveFile.setEnabled(true);
 			return;
 		}
 
 		if (o == sendPubKey) {
 			display("send public key");
+			chatMessage.setMessage(ChatMessage.SENDKEY, "kasdkopkwa");
+			chatMessage.setKey(this.keyPair.getPublic().getEncoded());
+
+//			for (byte b : this.keyPair.getPublic().getEncoded()) System.out.printf("%02X ", b);
+//			System.out.println("\n Private Key Length : " + this.keyPair.getPublic().getEncoded().length + " byte");
+
+			client.sendMessage(chatMessage);
 			return;
 		}
 
 		if (o == saveFile) {
-			display("save file");
+			display("save key to file");
 			try {
 				fileUtil.serializeDataOut(cryption.getKeyPair());
 			} catch (IOException e1) {
@@ -179,14 +186,12 @@ public class ClientGUI extends JFrame implements ActionListener {
 		}
 
 		if (o == loadFile) {
-			display("load file");
+			display("load key from file");
 			try {
-				keyPair = fileUtil.serializeDataIn();
-				for (byte b : keyPair.getPublic().getEncoded()) System.out.printf("%02X ", b);
-				System.out.println("\n Private Key Length : " + keyPair.getPublic().getEncoded().length + " byte");
-			} catch (IOException e1) {
-				e1.printStackTrace();
+				this.keyPair = fileUtil.serializeDataIn();
 			} catch (ClassNotFoundException e1) {
+				e1.printStackTrace();
+			} catch (IOException e1) {
 				e1.printStackTrace();
 			}
 			return;

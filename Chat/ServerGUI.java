@@ -85,7 +85,7 @@ ServerGUI extends JFrame implements ActionListener, WindowListener {
 		Object o = e.getSource();
 
 		if (o == keyGen) {
-			//client.sendMessage(new ChatMessage(ChatMessage.WHOISIN, ""));
+			//client.sendMessage(new ChatMessage(ChatMessage.SENDKEY, ""));
 			appendRoom("key generation\n");
 			saveFile.setEnabled(true);
 			return;

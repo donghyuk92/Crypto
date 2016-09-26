@@ -11,20 +11,14 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.Scanner;
 
 public class RSACryption {
-	private PublicKey publicKey;
-	private PrivateKey privateKey;
 	private KeyPair keyPair;
 
-	public void keyGen() throws NoSuchAlgorithmException {
+	public KeyPair keyGen() throws NoSuchAlgorithmException {
 		System.out.println("\n=== RSA Key Generation ===");
 		KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
 		generator.initialize(2048);
 		keyPair = generator.generateKeyPair();
-		publicKey = keyPair.getPublic();
-		privateKey = keyPair.getPrivate();
-
-		for (byte b : publicKey.getEncoded()) System.out.printf("%02X ", b);
-		System.out.println("\n Private Key Length : " + publicKey.getEncoded().length + " byte");
+		return keyPair;
 	}
 
 	public void encryptMessage(String plainText) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
@@ -35,7 +29,7 @@ public class RSACryption {
 
 		System.out.println("\n=== RSA Encryption ===");
 		Cipher cipher = Cipher.getInstance("RSA");
-		cipher.init(Cipher.ENCRYPT_MODE, publicKey);
+		//cipher.init(Cipher.ENCRYPT_MODE, publicKey);
 		byte[] b0 = cipher.doFinal(t0);
 		System.out.print("\n\n Ciphertext : ");
 		for (byte b : b0) System.out.printf("%02X ", b);
@@ -45,7 +39,7 @@ public class RSACryption {
 	public void decryptMessage(byte[] cipherText) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
 		System.out.println("=== RSA Decryption ===");
 		Cipher cipher = Cipher.getInstance("RSA");
-		cipher.init(Cipher.DECRYPT_MODE, privateKey);
+		//cipher.init(Cipher.DECRYPT_MODE, privateKey);
 		byte[] b1 = cipher.doFinal(cipherText);
 		System.out.print("\n Recovered Plaintext : " + new String(b1) + "\n");
 		for (byte b : b1) System.out.printf("%02X ", b);
@@ -56,16 +50,8 @@ public class RSACryption {
 		return this.keyPair;
 	}
 
-	public PublicKey getPublicKey() {
-		return this.publicKey;
-	}
-
 	public PublicKey getPublicKey(byte[] encodedKey) throws NoSuchAlgorithmException, InvalidKeySpecException {
 		return KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(encodedKey));
-	}
-
-	public PrivateKey getPrivateKey() {
-		return this.privateKey;
 	}
 
 	public PrivateKey getPrivateKey(byte[] encodedKey) throws NoSuchAlgorithmException, InvalidKeySpecException {
