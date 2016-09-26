@@ -1,9 +1,19 @@
 package Chat;
 
+import Crypto.RSACryption;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import java.io.*;
 import java.net.*;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+
+import File.FileUtil;
 
 /*
  * The server that can be run both as a console application or a GUI
@@ -22,6 +32,8 @@ public class Server {
 	// the boolean that will be turned of to stop the server
 	private boolean keepGoing;
 
+	private RSACryption cryption;
+	private FileUtil fileUtil;
 
 	/*
 	 *  server constructor that receive the port to listen to for connection as parameter
@@ -40,6 +52,9 @@ public class Server {
 		sdf = new SimpleDateFormat("HH:mm:ss");
 		// ArrayList for the Client.Client list
 		al = new ArrayList<ClientThread>();
+
+		cryption = new RSACryption();
+		fileUtil = new FileUtil();
 	}
 
 	public void start() {
@@ -242,7 +257,25 @@ public class Server {
 				switch (cm.getType()) {
 
 					case ChatMessage.MESSAGE:
-						broadcast(username + ": " + message);
+						byte[] plainText = null;
+						try {
+							plainText = cryption.decryptMessage(cm.getCipherText(),
+										cryption.getPublicKey(cm.getEncodedKey()));
+						} catch (NoSuchPaddingException e) {
+							e.printStackTrace();
+						} catch (NoSuchAlgorithmException e) {
+							e.printStackTrace();
+						} catch (InvalidKeyException e) {
+							e.printStackTrace();
+						} catch (BadPaddingException e) {
+							e.printStackTrace();
+						} catch (IllegalBlockSizeException e) {
+							e.printStackTrace();
+						} catch (InvalidKeySpecException e) {
+							e.printStackTrace();
+						}
+
+						broadcast(username + ": " + new String(plainText));
 						break;
 					case ChatMessage.LOGOUT:
 						display(username + " disconnected with a LOGOUT message.");

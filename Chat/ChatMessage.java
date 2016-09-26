@@ -19,6 +19,7 @@ public class ChatMessage implements Serializable {
 	static final int SENDKEY = 0, MESSAGE = 1, LOGOUT = 2;
 	private int type;
 	private String message;
+	private byte[] cipherText;
 	private byte[] encodedKey;
 
 	// constructor
@@ -37,15 +38,23 @@ public class ChatMessage implements Serializable {
 		this.message = message;
 	}
 
-	public void setKey(byte[] encodedKey) {
+	public void setEncodedKey(byte[] encodedKey) {
 		this.encodedKey = encodedKey;
+	}
+
+	public void setCipherText(byte[] cipherText) {
+		this.cipherText = cipherText;
+	}
+
+	public String getMessage() {
+		return message;
 	}
 
 	public byte[] getEncodedKey() {
 		return this.encodedKey;
 	}
 
-	public String getMessage() {
-		return message;
+	public byte[] getCipherText() {
+		return this.cipherText;
 	}
 }

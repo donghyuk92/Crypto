@@ -3,10 +3,14 @@ package Chat;
 import Crypto.RSACryption;
 import File.FileUtil;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
+import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 
@@ -165,8 +169,8 @@ public class ClientGUI extends JFrame implements ActionListener {
 
 		if (o == sendPubKey) {
 			display("send public key");
-			chatMessage.setMessage(ChatMessage.SENDKEY, "kasdkopkwa");
-			chatMessage.setKey(this.keyPair.getPublic().getEncoded());
+			chatMessage.setMessage(ChatMessage.SENDKEY, "");
+			chatMessage.setEncodedKey(this.keyPair.getPublic().getEncoded());
 
 //			for (byte b : this.keyPair.getPublic().getEncoded()) System.out.printf("%02X ", b);
 //			System.out.println("\n Private Key Length : " + this.keyPair.getPublic().getEncoded().length + " byte");
@@ -200,7 +204,23 @@ public class ClientGUI extends JFrame implements ActionListener {
 		// ok it is coming from the JTextField
 		if (connected) {
 			// just have to send the message
-			client.sendMessage(new ChatMessage(ChatMessage.MESSAGE, tf.getText()));
+			byte[] cipherText = null;
+			try {
+				cipherText = cryption.encryptMessage(tf.getText(), this.keyPair.getPrivate());
+			} catch (NoSuchPaddingException e1) {
+				e1.printStackTrace();
+			} catch (NoSuchAlgorithmException e1) {
+				e1.printStackTrace();
+			} catch (InvalidKeyException e1) {
+				e1.printStackTrace();
+			} catch (BadPaddingException e1) {
+				e1.printStackTrace();
+			} catch (IllegalBlockSizeException e1) {
+				e1.printStackTrace();
+			}
+			chatMessage.setMessage(ChatMessage.MESSAGE, "");
+			chatMessage.setCipherText(cipherText);
+			client.sendMessage(chatMessage);
 			tf.setText("");
 			return;
 		}
