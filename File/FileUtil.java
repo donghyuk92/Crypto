@@ -23,4 +23,21 @@ public class FileUtil implements Serializable {
 		ois.close();
 		return keyPair;
 	}
+
+	public void serializeDataOutForServer(KeyPair ish) throws IOException, FileNotFoundException {
+		String fileName= "savedKeyForServer.txt";
+		FileOutputStream fos = new FileOutputStream(fileName);
+		ObjectOutputStream oos = new ObjectOutputStream(fos);
+		oos.writeObject(ish);
+		oos.close();
+	}
+
+	public KeyPair serializeDataInForServer() throws IOException, ClassNotFoundException {
+		String fileName= "savedKeyForServer.txt";
+		FileInputStream fin = new FileInputStream(fileName);
+		ObjectInputStream ois = new ObjectInputStream(fin);
+		KeyPair keyPair= (KeyPair) ois.readObject();
+		ois.close();
+		return keyPair;
+	}
 }

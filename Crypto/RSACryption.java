@@ -21,7 +21,7 @@ public class RSACryption {
 		return keyPair;
 	}
 
-	public byte[] encryptMessage(String plainText, PrivateKey privateKey) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+	public byte[] encryptMessage(String plainText, PublicKey publicKey) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
 		System.out.print("\n Plaintext : " + plainText + "\n");
 		byte[] t0 = plainText.getBytes();
 		for (byte b : t0) System.out.printf("%02X ", b);
@@ -29,7 +29,7 @@ public class RSACryption {
 
 		System.out.println("\n=== RSA Encryption ===");
 		Cipher cipher = Cipher.getInstance("RSA");
-		cipher.init(Cipher.ENCRYPT_MODE, privateKey);
+		cipher.init(Cipher.ENCRYPT_MODE, publicKey);
 		byte[] b0 = cipher.doFinal(t0);
 		System.out.print("\n\n Ciphertext : ");
 		for (byte b : b0) System.out.printf("%02X ", b);
@@ -38,10 +38,10 @@ public class RSACryption {
 		return b0;
 	}
 
-	public byte[] decryptMessage(byte[] cipherText, PublicKey publicKey) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+	public byte[] decryptMessage(byte[] cipherText, PrivateKey privateKey) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
 		System.out.println("=== RSA Decryption ===");
 		Cipher cipher = Cipher.getInstance("RSA");
-		cipher.init(Cipher.DECRYPT_MODE, publicKey);
+		cipher.init(Cipher.DECRYPT_MODE, privateKey);
 		byte[] b1 = cipher.doFinal(cipherText);
 		System.out.print("\n Recovered Plaintext : " + new String(b1) + "\n");
 		for (byte b : b1) System.out.printf("%02X ", b);

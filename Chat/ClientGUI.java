@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
 
 
 /*
@@ -24,7 +25,7 @@ public class ClientGUI extends JFrame implements ActionListener {
 	// will first hold "Username:", later on "Enter message"
 	private JLabel label;
 	// to hold the Username and later on the messages
-	private JTextField tf;
+	public JTextField tf;
 	// to hold the server address an the port number
 	private JTextField tfServer, tfPort;
 	// to Logout and get the list of the users
@@ -38,11 +39,6 @@ public class ClientGUI extends JFrame implements ActionListener {
 	// the default port number
 	private int defaultPort;
 	private String defaultHost;
-
-	private RSACryption cryption;
-	private FileUtil fileUtil;
-	private KeyPair keyPair;
-	private ChatMessage chatMessage;
 
 	// Constructor connection receiving a socket number
 	ClientGUI(String host, int port) {
@@ -113,10 +109,6 @@ public class ClientGUI extends JFrame implements ActionListener {
 		setSize(800, 600);
 		setVisible(true);
 		tf.requestFocus();
-
-		cryption = new RSACryption();
-		fileUtil = new FileUtil();
-		chatMessage = new ChatMessage(ChatMessage.MESSAGE, "default");
 	}
 
 	// called by the Client.Client to append text in the TextArea
@@ -151,76 +143,40 @@ public class ClientGUI extends JFrame implements ActionListener {
 		Object o = e.getSource();
 		// if it is the Logout button
 		if (o == logout) {
-			chatMessage.setMessage(ChatMessage.LOGOUT, "");
-			client.sendMessage(chatMessage);
+			display("logout");
+			client.logout();
 			return;
 		}
 
 		if (o == keyGen) {
 			display("key generation");
-			try {
-				this.keyPair = cryption.keyGen();
-			} catch (NoSuchAlgorithmException e1) {
-				e1.printStackTrace();
-			}
+			client.keyGen();
 			saveFile.setEnabled(true);
 			return;
 		}
 
 		if (o == sendPubKey) {
 			display("send public key");
-			chatMessage.setMessage(ChatMessage.SENDKEY, "");
-			chatMessage.setEncodedKey(this.keyPair.getPublic().getEncoded());
-
-//			for (byte b : this.keyPair.getPublic().getEncoded()) System.out.printf("%02X ", b);
-//			System.out.println("\n Private Key Length : " + this.keyPair.getPublic().getEncoded().length + " byte");
-
-			client.sendMessage(chatMessage);
+			client.sendPubKey();
 			return;
 		}
 
 		if (o == saveFile) {
 			display("save key to file");
-			try {
-				fileUtil.serializeDataOut(cryption.getKeyPair());
-			} catch (IOException e1) {
-				e1.printStackTrace();
-			}
+			client.saveFile();
 			return;
 		}
 
 		if (o == loadFile) {
 			display("load key from file");
-			try {
-				this.keyPair = fileUtil.serializeDataIn();
-			} catch (ClassNotFoundException e1) {
-				e1.printStackTrace();
-			} catch (IOException e1) {
-				e1.printStackTrace();
-			}
+			client.loadFile();
 			return;
 		}
 
 		// ok it is coming from the JTextField
 		if (connected) {
 			// just have to send the message
-			byte[] cipherText = null;
-			try {
-				cipherText = cryption.encryptMessage(tf.getText(), this.keyPair.getPrivate());
-			} catch (NoSuchPaddingException e1) {
-				e1.printStackTrace();
-			} catch (NoSuchAlgorithmException e1) {
-				e1.printStackTrace();
-			} catch (InvalidKeyException e1) {
-				e1.printStackTrace();
-			} catch (BadPaddingException e1) {
-				e1.printStackTrace();
-			} catch (IllegalBlockSizeException e1) {
-				e1.printStackTrace();
-			}
-			chatMessage.setMessage(ChatMessage.MESSAGE, "");
-			chatMessage.setCipherText(cipherText);
-			client.sendMessage(chatMessage);
+			client.sendEncryptMessage();
 			tf.setText("");
 			return;
 		}

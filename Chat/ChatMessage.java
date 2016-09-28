@@ -30,7 +30,7 @@ public class ChatMessage implements Serializable {
 
 	// getters
 	public int getType() {
-		return type;
+		return this.type;
 	}
 
 	public void setMessage(int type, String message) {

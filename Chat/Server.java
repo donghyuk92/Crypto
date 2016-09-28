@@ -8,7 +8,9 @@ import javax.crypto.NoSuchPaddingException;
 import java.io.*;
 import java.net.*;
 import java.security.InvalidKeyException;
+import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -35,6 +37,9 @@ public class Server {
 	private RSACryption cryption;
 	private FileUtil fileUtil;
 
+	private KeyPair keyPair;
+	private PublicKey userPublicKey;
+
 	/*
 	 *  server constructor that receive the port to listen to for connection as parameter
 	 *  in console
@@ -53,8 +58,8 @@ public class Server {
 		// ArrayList for the Client.Client list
 		al = new ArrayList<ClientThread>();
 
-		cryption = new RSACryption();
-		fileUtil = new FileUtil();
+		this.cryption = new RSACryption();
+		this.fileUtil = new FileUtil();
 	}
 
 	public void start() {
@@ -132,19 +137,28 @@ public class Server {
 	private synchronized void broadcast(String message) {
 		// add HH:mm:ss and \n to the message
 		String time = sdf.format(new Date());
-		String messageLf = time + " " + message + "\n";
+		String plainText = time + " " + message + "\n";
+		byte[] messageLf = new byte[0];
+		try {
+			messageLf = cryption.encryptMessage(plainText, userPublicKey);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		// display message on console or GUI
 		if (sg == null)
-			System.out.print(messageLf);
+			System.out.print(plainText);
 		else
-			sg.appendRoom(messageLf);     // append in the room window
+			sg.appendRoom(plainText);     // append in the room window
 
 		// we loop in reverse order in case we would have to remove a Client.Client
 		// because it has disconnected
+		ChatMessage chatMessage = new ChatMessage(ChatMessage.MESSAGE, "");
+		chatMessage.setCipherText(messageLf);
+
 		for (int i = al.size(); --i >= 0; ) {
 			ClientThread ct = al.get(i);
 			// try to write to the Client.Client if it fails remove it from the list
-			if (!ct.writeMsg(messageLf)) {
+			if (!ct.writeObject(chatMessage)) {
 				al.remove(i);
 				display("Disconnected Client.Client " + ct.username + " removed from list.");
 			}
@@ -170,29 +184,29 @@ public class Server {
 	 * > java Chat.Server portNumber
 	 * If the port number is not specified 1500 is used
 	 */
-	public static void main(String[] args) {
-		// start server on port 1500 unless a PortNumber is specified
-		int portNumber = 1500;
-		switch (args.length) {
-			case 1:
-				try {
-					portNumber = Integer.parseInt(args[0]);
-				} catch (Exception e) {
-					System.out.println("Invalid port number.");
-					System.out.println("Usage is: > java Chat.Server [portNumber]");
-					return;
-				}
-			case 0:
-				break;
-			default:
-				System.out.println("Usage is: > java Chat.Server [portNumber]");
-				return;
-
-		}
-		// create a server object and start it
-		Server server = new Server(portNumber);
-		server.start();
-	}
+//	public static void main(String[] args) {
+//		// start server on port 1500 unless a PortNumber is specified
+//		int portNumber = 1500;
+//		switch (args.length) {
+//			case 1:
+//				try {
+//					portNumber = Integer.parseInt(args[0]);
+//				} catch (Exception e) {
+//					System.out.println("Invalid port number.");
+//					System.out.println("Usage is: > java Chat.Server [portNumber]");
+//					return;
+//				}
+//			case 0:
+//				break;
+//			default:
+//				System.out.println("Usage is: > java Chat.Server [portNumber]");
+//				return;
+//
+//		}
+//		// create a server object and start it
+//		Server server = new Server(portNumber);
+//		server.start();
+//	}
 
 	/**
 	 * One instance of this thread will run for each client
@@ -254,27 +268,18 @@ public class Server {
 				String message = cm.getMessage();
 
 				// Switch on the type of message receive
+				System.out.println(cm.getType());
+				System.out.println(message);
 				switch (cm.getType()) {
-
 					case ChatMessage.MESSAGE:
 						byte[] plainText = null;
 						try {
-							plainText = cryption.decryptMessage(cm.getCipherText(),
-										cryption.getPublicKey(cm.getEncodedKey()));
-						} catch (NoSuchPaddingException e) {
-							e.printStackTrace();
-						} catch (NoSuchAlgorithmException e) {
-							e.printStackTrace();
-						} catch (InvalidKeyException e) {
-							e.printStackTrace();
-						} catch (BadPaddingException e) {
-							e.printStackTrace();
-						} catch (IllegalBlockSizeException e) {
-							e.printStackTrace();
-						} catch (InvalidKeySpecException e) {
+							plainText = cryption.decryptMessage(cm.getCipherText(), keyPair.getPrivate());
+							System.out.println(plainText);
+							System.out.println(new String(plainText));
+						} catch (Exception e) {
 							e.printStackTrace();
 						}
-
 						broadcast(username + ": " + new String(plainText));
 						break;
 					case ChatMessage.LOGOUT:
@@ -282,15 +287,10 @@ public class Server {
 						keepGoing = false;
 						break;
 					case ChatMessage.SENDKEY:
-
-//						for (byte b : cm.getEncodedKey()) System.out.printf("%02X ", b);
-//						System.out.println("\n Private Key Length : " + cm.getEncodedKey().length + " byte");
-
-						writeMsg("List of the users connected at " + sdf.format(new Date()) + "\n");
-						// scan al the users connected
-						for (int i = 0; i < al.size(); ++i) {
-							ClientThread ct = al.get(i);
-							writeMsg((i + 1) + ") " + ct.username + " since " + ct.date);
+						try {
+							userPublicKey = cryption.getPublicKey(cm.getEncodedKey());
+						} catch (Exception e) {
+							e.printStackTrace();
 						}
 						break;
 				}
@@ -322,7 +322,8 @@ public class Server {
 		/*
 		 * Write a String to the Client.Client output stream
 		 */
-		private boolean writeMsg(String msg) {
+
+		private boolean writeObject(Object msg) {
 			// if Client.Client is still connected send the message to it
 			if (!socket.isConnected()) {
 				close();
@@ -338,6 +339,43 @@ public class Server {
 				display(e.toString());
 			}
 			return true;
+		}
+	}
+
+
+
+	public void keyGen() {
+		try {
+			this.keyPair = cryption.keyGen();
+		} catch (NoSuchAlgorithmException e1) {
+			e1.printStackTrace();
+		}
+	}
+
+	public void sendPubKey() {
+		ChatMessage chatMessage = new ChatMessage(ChatMessage.SENDKEY, "");
+		chatMessage.setEncodedKey(keyPair.getPublic().getEncoded());
+		for (int i = 0; i < al.size(); ++i) {
+			ClientThread ct = al.get(i);
+			ct.writeObject(chatMessage);
+		}
+	}
+
+	public void saveFile() {
+		try {
+			fileUtil.serializeDataOut(cryption.getKeyPair());
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+	}
+
+	public void loadFile() {
+		try {
+			this.keyPair = fileUtil.serializeDataIn();
+		} catch (ClassNotFoundException e1) {
+			e1.printStackTrace();
+		} catch (IOException e1) {
+			e1.printStackTrace();
 		}
 	}
 }
