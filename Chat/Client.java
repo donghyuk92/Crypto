@@ -1,16 +1,16 @@
 package Chat;
 
 import Crypto.RSACryption;
+import File.FileUtil;
 
-import java.net.*;
-import java.io.*;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
-import java.util.*;
-
-import File.FileUtil;
 /*
  * The Client.Client that can be run both as a console or a GUI
  */
@@ -33,26 +33,10 @@ public class Client {
 	private KeyPair keyPair;
 	private PublicKey serverPubKey;
 
-	/*
-	 *  Constructor called by console mode
-	 *  server: the server address
-	 *  port: the port number
-	 *  username: the username
-	 */
-	Client(String server, int port, String username) {
-		// which calls the common constructor with the GUI set to null
-		this(server, port, username, null);
-	}
-
-	/*
-	 * Constructor call when used from a GUI
-	 * in console mode the ClienGUI parameter is null
-	 */
 	Client(String server, int port, String username, ClientGUI cg) {
 		this.server = server;
 		this.port = port;
 		this.username = username;
-		// save if we are in GUI mode or not
 		this.cg = cg;
 
 		this.cryption = new RSACryption();
@@ -145,90 +129,6 @@ public class Client {
 
 	}
 
-	/*
-	 * To start the Client.Client in console mode use one of the following command
-	 * > java Client.Client
-	 * > java Client.Client username
-	 * > java Client.Client username portNumber
-	 * > java Client.Client username portNumber serverAddress
-	 * at the console prompt
-	 * If the portNumber is not specified 1500 is used
-	 * If the serverAddress is not specified "localHost" is used
-	 * If the username is not specified "Anonymous" is used
-	 * > java Client.Client
-	 * is equivalent to
-	 * > java Client.Client Anonymous 1500 localhost
-	 * are eqquivalent
-	 *
-	 * In console mode, if an error occurs the program simply stops
-	 * when a GUI id used, the GUI is informed of the disconnection
-	 */
-//	public static void main(String[] args) {
-//		// default values
-//		int portNumber = 1500;
-//		String serverAddress = "localhost";
-//		String userName = "Anonymous";
-//
-//		// depending of the number of arguments provided we fall through
-//		switch (args.length) {
-//			// > javac Client.Client username portNumber serverAddr
-//			case 3:
-//				serverAddress = args[2];
-//				// > javac Client.Client username portNumber
-//			case 2:
-//				try {
-//					portNumber = Integer.parseInt(args[1]);
-//				} catch (Exception e) {
-//					System.out.println("Invalid port number.");
-//					System.out.println("Usage is: > java Client.Client [username] [portNumber] [serverAddress]");
-//					return;
-//				}
-//				// > javac Client.Client username
-//			case 1:
-//				userName = args[0];
-//				// > java Client.Client
-//			case 0:
-//				break;
-//			// invalid number of arguments
-//			default:
-//				System.out.println("Usage is: > java Client.Client [username] [portNumber] {serverAddress]");
-//				return;
-//		}
-//		// create the Client.Client object
-//		Client client = new Client(serverAddress, portNumber, userName);
-//		// test if we can start the connection to the Chat.Server
-//		// if it failed nothing we can do
-//		if (!client.start())
-//			return;
-//
-//		// wait for messages from user
-//		Scanner scan = new Scanner(System.in);
-//		// loop forever for message from the user
-//		while (true) {
-//			System.out.print("> ");
-//			// read message from user
-//			String msg = scan.nextLine();
-//			// logout if message is LOGOUT
-//			if (msg.equalsIgnoreCase("LOGOUT")) {
-//				client.sendMessage(new ChatMessage(ChatMessage.LOGOUT, ""));
-//				// break to do the disconnect
-//				break;
-//			}
-//			// message WhoIsIn
-//			else if (msg.equalsIgnoreCase("SENDKEY")) {
-//				client.sendMessage(new ChatMessage(ChatMessage.SENDKEY, ""));
-//			} else {                // default to ordinary message
-//				client.sendMessage(new ChatMessage(ChatMessage.MESSAGE, msg));
-//			}
-//		}
-//		// done disconnect
-//		client.disconnect();
-//	}
-
-	/*
-	 * a class that waits for the message from the server and append them to the JTextArea
-	 * if we have a GUI or simply System.out.println() it in console mode
-	 */
 	class ListenFromServer extends Thread {
 
 		public void run() {

@@ -1,21 +1,19 @@
 package Chat;
 
 import Crypto.RSACryption;
+import File.FileUtil;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import java.io.*;
-import java.net.*;
-import java.security.InvalidKeyException;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
 import java.text.SimpleDateFormat;
-import java.util.*;
-
-import File.FileUtil;
+import java.util.ArrayList;
+import java.util.Date;
 
 /*
  * The server that can be run both as a console application or a GUI
@@ -39,14 +37,6 @@ public class Server {
 
 	private KeyPair keyPair;
 	private PublicKey userPublicKey;
-
-	/*
-	 *  server constructor that receive the port to listen to for connection as parameter
-	 *  in console
-	 */
-	public Server(int port) {
-		this(port, null);
-	}
 
 	public Server(int port, ServerGUI sg) {
 		// GUI or not
@@ -178,39 +168,6 @@ public class Server {
 		}
 	}
 
-	/*
-	 *  To run as a console application just open a console window and:
-	 * > java Chat.Server
-	 * > java Chat.Server portNumber
-	 * If the port number is not specified 1500 is used
-	 */
-//	public static void main(String[] args) {
-//		// start server on port 1500 unless a PortNumber is specified
-//		int portNumber = 1500;
-//		switch (args.length) {
-//			case 1:
-//				try {
-//					portNumber = Integer.parseInt(args[0]);
-//				} catch (Exception e) {
-//					System.out.println("Invalid port number.");
-//					System.out.println("Usage is: > java Chat.Server [portNumber]");
-//					return;
-//				}
-//			case 0:
-//				break;
-//			default:
-//				System.out.println("Usage is: > java Chat.Server [portNumber]");
-//				return;
-//
-//		}
-//		// create a server object and start it
-//		Server server = new Server(portNumber);
-//		server.start();
-//	}
-
-	/**
-	 * One instance of this thread will run for each client
-	 */
 	class ClientThread extends Thread {
 		// the socket where to listen/talk
 		Socket socket;
@@ -268,14 +225,11 @@ public class Server {
 				String message = cm.getMessage();
 
 				// Switch on the type of message receive
-				System.out.println(cm.getType());
-				System.out.println(message);
 				switch (cm.getType()) {
 					case ChatMessage.MESSAGE:
 						byte[] plainText = null;
 						try {
 							plainText = cryption.decryptMessage(cm.getCipherText(), keyPair.getPrivate());
-							System.out.println(plainText);
 							System.out.println(new String(plainText));
 						} catch (Exception e) {
 							e.printStackTrace();
@@ -312,7 +266,6 @@ public class Server {
 				if (sInput != null) sInput.close();
 			} catch (Exception e) {
 			}
-			;
 			try {
 				if (socket != null) socket.close();
 			} catch (Exception e) {
@@ -363,7 +316,7 @@ public class Server {
 
 	public void saveFile() {
 		try {
-			fileUtil.serializeDataOut(cryption.getKeyPair());
+			fileUtil.serializeDataOutForServer(cryption.getKeyPair());
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
@@ -371,7 +324,7 @@ public class Server {
 
 	public void loadFile() {
 		try {
-			this.keyPair = fileUtil.serializeDataIn();
+			this.keyPair = fileUtil.serializeDataInForServer();
 		} catch (ClassNotFoundException e1) {
 			e1.printStackTrace();
 		} catch (IOException e1) {

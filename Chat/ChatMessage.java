@@ -1,6 +1,6 @@
 package Chat;
 
-import java.io.*;
+import java.io.Serializable;
 
 /*
  * This class defines the different type of messages that will be exchanged between the
@@ -31,11 +31,6 @@ public class ChatMessage implements Serializable {
 	// getters
 	public int getType() {
 		return this.type;
-	}
-
-	public void setMessage(int type, String message) {
-		this.type = type;
-		this.message = message;
 	}
 
 	public void setEncodedKey(byte[] encodedKey) {

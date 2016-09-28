@@ -8,7 +8,6 @@ import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.Scanner;
 
 public class RSACryption {
 	private KeyPair keyPair;
@@ -56,9 +55,5 @@ public class RSACryption {
 
 	public PublicKey getPublicKey(byte[] encodedKey) throws NoSuchAlgorithmException, InvalidKeySpecException {
 		return KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(encodedKey));
-	}
-
-	public PrivateKey getPrivateKey(byte[] encodedKey) throws NoSuchAlgorithmException, InvalidKeySpecException {
-		return KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(encodedKey));
 	}
 }

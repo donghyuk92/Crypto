@@ -1,19 +1,9 @@
 package Chat;
 
-import Crypto.RSACryption;
-import File.FileUtil;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
-import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
-import java.security.PublicKey;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 
 /*
