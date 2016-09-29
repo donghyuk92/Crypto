@@ -1,5 +1,6 @@
 package Chat;
 
+import Crypto.KeyWrapper;
 import Crypto.RSACryption;
 import File.FileUtil;
 
@@ -142,7 +143,7 @@ public class Client {
 					} else {
 						switch (msg.getType()) {
 							case ChatMessage.SENDKEY:
-								setServerPubKey(cryption.getPublicKey(msg.getEncodedKey()));
+                                serverPubKey = cryption.getPublicKey(msg.getEncodedKey());
 								break;
 							case ChatMessage.MESSAGE:
 								byte[] plainText = null;
@@ -178,7 +179,14 @@ public class Client {
 
 	public void keyGen() {
 		try {
-			this.keyPair = cryption.keyGen();
+			keyPair = cryption.keyGen();
+			String keyPrint = "";
+			for (byte b : keyPair.getPublic().getEncoded()) {
+				keyPrint += b;
+				System.out.printf("%02X ", b);
+			}
+			display("\n Public Key : " + keyPrint);
+			display("\n Public Key Length : " + keyPair.getPublic().getEncoded().length + " byte");
 		} catch (NoSuchAlgorithmException e1) {
 			e1.printStackTrace();
 		}
@@ -186,7 +194,7 @@ public class Client {
 
 	public void sendPubKey() {
 		ChatMessage chatMessage = new ChatMessage(ChatMessage.SENDKEY, "");
-		chatMessage.setEncodedKey(this.keyPair.getPublic().getEncoded());
+		chatMessage.setEncodedKey(keyPair.getPublic().getEncoded());
 		sendMessage(chatMessage);
 	}
 
@@ -204,7 +212,7 @@ public class Client {
 
 	public void saveFile() {
 		try {
-			fileUtil.serializeDataOut(cryption.getKeyPair());
+            fileUtil.serializeDataOut(new KeyWrapper(cryption.getKeyPair(), serverPubKey));
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
@@ -212,15 +220,13 @@ public class Client {
 
 	public void loadFile() {
 		try {
-			this.keyPair = fileUtil.serializeDataIn();
+            KeyWrapper keyWrapper = fileUtil.serializeDataIn();
+            keyPair = keyWrapper.keyPair;
+            serverPubKey = keyWrapper.publicKey;
 		} catch (ClassNotFoundException e1) {
 			e1.printStackTrace();
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
-	}
-
-	public void setServerPubKey(PublicKey serverPubKey) {
-		this.serverPubKey = serverPubKey;
 	}
 }

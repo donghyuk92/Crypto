@@ -1,5 +1,7 @@
 package File;
 
+import Crypto.KeyWrapper;
+
 import java.io.*;
 import java.security.KeyPair;
 
@@ -7,7 +9,7 @@ import java.security.KeyPair;
  * Created by slave on 2016-09-26.
  */
 public class FileUtil implements Serializable {
-	public void serializeDataOut(KeyPair ish) throws IOException, FileNotFoundException {
+	public void serializeDataOut(KeyWrapper ish) throws IOException {
 		String fileName= "savedKey.txt";
 		FileOutputStream fos = new FileOutputStream(fileName);
 		ObjectOutputStream oos = new ObjectOutputStream(fos);
@@ -15,16 +17,16 @@ public class FileUtil implements Serializable {
 		oos.close();
 	}
 
-	public KeyPair serializeDataIn() throws IOException, ClassNotFoundException {
+	public KeyWrapper serializeDataIn() throws IOException, ClassNotFoundException {
 		String fileName= "savedKey.txt";
 		FileInputStream fin = new FileInputStream(fileName);
 		ObjectInputStream ois = new ObjectInputStream(fin);
-		KeyPair keyPair= (KeyPair) ois.readObject();
+		KeyWrapper keyPair= (KeyWrapper) ois.readObject();
 		ois.close();
 		return keyPair;
 	}
 
-	public void serializeDataOutForServer(KeyPair ish) throws IOException, FileNotFoundException {
+	public void serializeDataOutForServer(KeyWrapper ish) throws IOException {
 		String fileName= "savedKeyForServer.txt";
 		FileOutputStream fos = new FileOutputStream(fileName);
 		ObjectOutputStream oos = new ObjectOutputStream(fos);
@@ -32,11 +34,11 @@ public class FileUtil implements Serializable {
 		oos.close();
 	}
 
-	public KeyPair serializeDataInForServer() throws IOException, ClassNotFoundException {
+	public KeyWrapper serializeDataInForServer() throws IOException, ClassNotFoundException {
 		String fileName= "savedKeyForServer.txt";
 		FileInputStream fin = new FileInputStream(fileName);
 		ObjectInputStream ois = new ObjectInputStream(fin);
-		KeyPair keyPair= (KeyPair) ois.readObject();
+		KeyWrapper keyPair= (KeyWrapper) ois.readObject();
 		ois.close();
 		return keyPair;
 	}

@@ -1,5 +1,6 @@
 package Chat;
 
+import Crypto.KeyWrapper;
 import Crypto.RSACryption;
 import File.FileUtil;
 
@@ -299,7 +300,14 @@ public class Server {
 
 	public void keyGen() {
 		try {
-			this.keyPair = cryption.keyGen();
+			keyPair = cryption.keyGen();
+			String keyPrint = "";
+			for (byte b : keyPair.getPublic().getEncoded()) {
+				keyPrint += b;
+				System.out.printf("%02X ", b);
+			}
+			display("\n Public Key : " + keyPrint);
+			display("\n Public Key Length : " + keyPair.getPublic().getEncoded().length + " byte");
 		} catch (NoSuchAlgorithmException e1) {
 			e1.printStackTrace();
 		}
@@ -316,7 +324,7 @@ public class Server {
 
 	public void saveFile() {
 		try {
-			fileUtil.serializeDataOutForServer(cryption.getKeyPair());
+			fileUtil.serializeDataOutForServer(new KeyWrapper(cryption.getKeyPair(), userPublicKey));
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
@@ -324,7 +332,9 @@ public class Server {
 
 	public void loadFile() {
 		try {
-			this.keyPair = fileUtil.serializeDataInForServer();
+			KeyWrapper keyWrapper = fileUtil.serializeDataInForServer();
+			keyPair = keyWrapper.keyPair;
+			userPublicKey = keyWrapper.publicKey;
 		} catch (ClassNotFoundException e1) {
 			e1.printStackTrace();
 		} catch (IOException e1) {
