@@ -296,8 +296,6 @@ public class Server {
 		}
 	}
 
-
-
 	public void keyGen() {
 		try {
 			keyPair = cryption.keyGen();

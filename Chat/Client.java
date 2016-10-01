@@ -12,6 +12,7 @@ import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
+
 /*
  * The Client.Client that can be run both as a console or a GUI
  */
@@ -143,7 +144,7 @@ public class Client {
 					} else {
 						switch (msg.getType()) {
 							case ChatMessage.SENDKEY:
-                                serverPubKey = cryption.getPublicKey(msg.getEncodedKey());
+								serverPubKey = cryption.getPublicKey(msg.getEncodedKey());
 								break;
 							case ChatMessage.MESSAGE:
 								byte[] plainText = null;
@@ -212,7 +213,7 @@ public class Client {
 
 	public void saveFile() {
 		try {
-            fileUtil.serializeDataOut(new KeyWrapper(cryption.getKeyPair(), serverPubKey));
+			fileUtil.serializeDataOut(new KeyWrapper(cryption.getKeyPair(), serverPubKey));
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
@@ -220,9 +221,9 @@ public class Client {
 
 	public void loadFile() {
 		try {
-            KeyWrapper keyWrapper = fileUtil.serializeDataIn();
-            keyPair = keyWrapper.keyPair;
-            serverPubKey = keyWrapper.publicKey;
+			KeyWrapper keyWrapper = fileUtil.serializeDataIn();
+			keyPair = keyWrapper.keyPair;
+			serverPubKey = keyWrapper.publicKey;
 		} catch (ClassNotFoundException e1) {
 			e1.printStackTrace();
 		} catch (IOException e1) {
