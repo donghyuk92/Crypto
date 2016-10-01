@@ -6,8 +6,9 @@ import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 
 public class SymCryption {
+	private Key key;
 
-	public void keyGen() throws NoSuchAlgorithmException {
+	public Key keyGen() throws NoSuchAlgorithmException {
 		System.out.println("\n\nAES Key Generation ");
 		KeyGenerator keyGen2 = KeyGenerator.getInstance("AES");
 		keyGen2.init(128);
@@ -16,24 +17,26 @@ public class SymCryption {
 
 		System.out.print("Secret key generation complete: ");
 		for (byte b : printKey2) System.out.printf("%02X ", b);
-		System.out.print("\nLength of secret key: " + printKey2.length + " byte");
+		System.out.print("\nLength of secret key: " + printKey2.length + " byte\n");
+
+		return key2;
 	}
 
-	public void encryptMessage(String plainText, Key key) throws Exception {
-		System.out.print("Plaintext : ");
-		byte[] textBytes = plainText.getBytes();
-		for (byte b : textBytes) System.out.printf("%02X ", b);
-		System.out.print("\nPlaintext Length: " + textBytes.length + " byte");
+	public byte[] encryptMessage(String plainText, Key key) throws Exception {
+		System.out.print("Plaintext : " + plainText);
 
 		System.out.println("\n\nAES Encryption ");
 		Cipher cipher2 = Cipher.getInstance("AES/ECB/PKCS5Padding");
 		cipher2.init(Cipher.ENCRYPT_MODE, key);
 
+		byte[] textBytes = plainText.getBytes();
 		byte[] cipherText = cipher2.doFinal(textBytes);
 
 		System.out.print("\nCiphertext :");
 		for (byte b : cipherText) System.out.printf("%02X ", b);
 		System.out.print("\nCiphertext Length: " + cipherText.length + " byte");
+
+		return cipherText;
 	}
 
 	public void decryptMessage(byte[] cipherText, Key key) throws Exception {
@@ -42,5 +45,12 @@ public class SymCryption {
 		byte[] decryptText = cipher.doFinal(cipherText);
 		String output2 = new String(decryptText, "UTF8");
 		System.out.print("\nDecrypted Text:" + output2);
+	}
+
+	public static void main(String[] args) throws Exception {
+		SymCryption symCryption = new SymCryption();
+		symCryption.key = symCryption.keyGen();
+		byte[] encryptedMessage = symCryption.encryptMessage("donghyuk", symCryption.key);
+		symCryption.decryptMessage(encryptedMessage, symCryption.key);
 	}
 }
