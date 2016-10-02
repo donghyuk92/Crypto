@@ -2,13 +2,15 @@ package Chat;
 
 import Crypto.KeyWrapper;
 import Crypto.RSACryption;
-import File.FileUtil;
+import Crypto.SymCryption;
+import FileUtil.FileUtil;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.Key;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
@@ -33,11 +35,13 @@ public class Server {
 	// the boolean that will be turned of to stop the server
 	private boolean keepGoing;
 
-	private RSACryption cryption;
+	private RSACryption rsaCryption;
+	private SymCryption symCryption;
 	private FileUtil fileUtil;
 
 	private KeyPair keyPair;
 	private PublicKey userPublicKey;
+	private Key key;
 
 	public Server(int port, ServerGUI sg) {
 		// GUI or not
@@ -49,8 +53,9 @@ public class Server {
 		// ArrayList for the Client.Client list
 		al = new ArrayList<ClientThread>();
 
-		this.cryption = new RSACryption();
+		this.rsaCryption = new RSACryption();
 		this.fileUtil = new FileUtil();
+		this.symCryption = new SymCryption();
 	}
 
 	public void start() {
@@ -131,7 +136,7 @@ public class Server {
 		String plainText = time + " " + message + "\n";
 		byte[] messageLf = new byte[0];
 		try {
-			messageLf = cryption.encryptMessage(plainText, userPublicKey);
+			messageLf = rsaCryption.encryptMessage(plainText, userPublicKey);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -230,7 +235,7 @@ public class Server {
 					case ChatMessage.MESSAGE:
 						byte[] plainText = null;
 						try {
-							plainText = cryption.decryptMessage(cm.getCipherText(), keyPair.getPrivate());
+							plainText = rsaCryption.decryptMessage(cm.getCipherText(), keyPair.getPrivate());
 							System.out.println(new String(plainText));
 						} catch (Exception e) {
 							e.printStackTrace();
@@ -243,9 +248,26 @@ public class Server {
 						break;
 					case ChatMessage.SENDKEY:
 						try {
-							userPublicKey = cryption.getPublicKey(cm.getEncodedKey());
+							userPublicKey = rsaCryption.getPublicKey(cm.getEncodedKey());
 						} catch (Exception e) {
 							e.printStackTrace();
+						}
+						break;
+					case ChatMessage.FILE:
+						byte[] encryptedBytes = cm.getCipherFile();
+						byte[] decryptedBytes = null;
+						try {
+							decryptedBytes = symCryption.decryptFile(encryptedBytes, key);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+
+						if (decryptedBytes != null) {
+							try {
+								fileUtil.serializeFileOut(decryptedBytes);
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
 						}
 						break;
 				}
@@ -298,7 +320,7 @@ public class Server {
 
 	public void keyGen() {
 		try {
-			keyPair = cryption.keyGen();
+			keyPair = rsaCryption.keyGen();
 			String keyPrint = "";
 			for (byte b : keyPair.getPublic().getEncoded()) {
 				keyPrint += b;
@@ -322,7 +344,7 @@ public class Server {
 
 	public void saveFile() {
 		try {
-			fileUtil.serializeDataOutForServer(new KeyWrapper(cryption.getKeyPair(), userPublicKey));
+			fileUtil.serializeDataOutForServer(new KeyWrapper(rsaCryption.getKeyPair(), userPublicKey));
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}

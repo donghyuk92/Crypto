@@ -22,15 +22,12 @@ public class SymCryption {
 		return key2;
 	}
 
-	public byte[] encryptMessage(String plainText, Key key) throws Exception {
-		System.out.print("Plaintext : " + plainText);
-
+	public byte[] encryptFile(byte[] fileBytes, Key key) throws Exception {
 		System.out.println("\n\nAES Encryption ");
 		Cipher cipher2 = Cipher.getInstance("AES/ECB/PKCS5Padding");
 		cipher2.init(Cipher.ENCRYPT_MODE, key);
 
-		byte[] textBytes = plainText.getBytes();
-		byte[] cipherText = cipher2.doFinal(textBytes);
+		byte[] cipherText = cipher2.doFinal(fileBytes);
 
 		System.out.print("\nCiphertext :");
 		for (byte b : cipherText) System.out.printf("%02X ", b);
@@ -39,18 +36,19 @@ public class SymCryption {
 		return cipherText;
 	}
 
-	public void decryptMessage(byte[] cipherText, Key key) throws Exception {
+	public byte[] decryptFile(byte[] cipherText, Key key) throws Exception {
 		Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
 		cipher.init(Cipher.DECRYPT_MODE, key);
 		byte[] decryptText = cipher.doFinal(cipherText);
 		String output2 = new String(decryptText, "UTF8");
 		System.out.print("\nDecrypted Text:" + output2);
+		return decryptText;
 	}
 
 	public static void main(String[] args) throws Exception {
 		SymCryption symCryption = new SymCryption();
 		symCryption.key = symCryption.keyGen();
-		byte[] encryptedMessage = symCryption.encryptMessage("donghyuk", symCryption.key);
-		symCryption.decryptMessage(encryptedMessage, symCryption.key);
+		//byte[] encryptedMessage = symCryption.encryptFile("donghyuk", symCryption.key);
+		//symCryption.decryptFile(encryptedMessage, symCryption.key);
 	}
 }

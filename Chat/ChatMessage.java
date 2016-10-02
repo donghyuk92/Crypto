@@ -16,10 +16,11 @@ public class ChatMessage implements Serializable {
 	// SENDKEY to receive the list of the users connected
 	// MESSAGE an ordinary message
 	// LOGOUT to disconnect from the Chat.Server
-	static final int SENDKEY = 0, MESSAGE = 1, LOGOUT = 2;
+	static final int SENDKEY = 0, MESSAGE = 1, LOGOUT = 2, FILE = 3;
 	private int type;
 	private String message;
 	private byte[] cipherText;
+	private byte[] cipherFile;
 	private byte[] encodedKey;
 
 	// constructor
@@ -41,6 +42,10 @@ public class ChatMessage implements Serializable {
 		this.cipherText = cipherText;
 	}
 
+	public void setCipherFile(byte[] cipherFile) {
+		this.cipherFile = cipherFile;
+	}
+
 	public String getMessage() {
 		return message;
 	}
@@ -51,5 +56,9 @@ public class ChatMessage implements Serializable {
 
 	public byte[] getCipherText() {
 		return this.cipherText;
+	}
+
+	public byte[] getCipherFile() {
+		return this.cipherFile;
 	}
 }

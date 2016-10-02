@@ -2,12 +2,16 @@ package Chat;
 
 import Crypto.KeyWrapper;
 import Crypto.RSACryption;
-import File.FileUtil;
+import Crypto.SymCryption;
+import FileUtil.FileUtil;
 
+import javax.swing.*;
+import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.security.Key;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
@@ -30,10 +34,14 @@ public class Client {
 	private String server, username;
 	private int port;
 
-	private RSACryption cryption;
+	private RSACryption rsaCryption;
+	private SymCryption symCryption;
 	private FileUtil fileUtil;
 	private KeyPair keyPair;
 	private PublicKey serverPubKey;
+	private Key key;
+
+	private JFileChooser fileChooser;
 
 	Client(String server, int port, String username, ClientGUI cg) {
 		this.server = server;
@@ -41,8 +49,9 @@ public class Client {
 		this.username = username;
 		this.cg = cg;
 
-		this.cryption = new RSACryption();
+		this.rsaCryption = new RSACryption();
 		this.fileUtil = new FileUtil();
+		this.fileChooser = new JFileChooser();
 	}
 
 	/*
@@ -144,12 +153,12 @@ public class Client {
 					} else {
 						switch (msg.getType()) {
 							case ChatMessage.SENDKEY:
-								serverPubKey = cryption.getPublicKey(msg.getEncodedKey());
+								serverPubKey = rsaCryption.getPublicKey(msg.getEncodedKey());
 								break;
 							case ChatMessage.MESSAGE:
 								byte[] plainText = null;
 								try {
-									plainText = cryption.decryptMessage(msg.getCipherText(), keyPair.getPrivate());
+									plainText = rsaCryption.decryptMessage(msg.getCipherText(), keyPair.getPrivate());
 									cg.append(new String(plainText));
 								} catch (Exception e) {
 									e.printStackTrace();
@@ -180,7 +189,7 @@ public class Client {
 
 	public void keyGen() {
 		try {
-			keyPair = cryption.keyGen();
+			keyPair = rsaCryption.keyGen();
 			String keyPrint = "";
 			for (byte b : keyPair.getPublic().getEncoded()) {
 				keyPrint += b;
@@ -202,7 +211,7 @@ public class Client {
 	public void sendEncryptMessage() {
 		byte[] cipherText = null;
 		try {
-			cipherText = cryption.encryptMessage(cg.tf.getText(), serverPubKey);
+			cipherText = rsaCryption.encryptMessage(cg.tf.getText(), serverPubKey);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -211,9 +220,36 @@ public class Client {
 		sendMessage(chatMessage);
 	}
 
+	public void sendEncryptFile(File file) {
+		if (key == null) {
+			try {
+				key = symCryption.keyGen();
+			} catch (NoSuchAlgorithmException e) {
+				e.printStackTrace();
+			}
+		}
+
+		byte[] fileBytes = null;
+		try {
+			fileBytes = fileUtil.getBytesFromFile(file);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		if (fileBytes != null) {
+			try {
+				ChatMessage chatMessage = new ChatMessage(ChatMessage.FILE, "");
+				chatMessage.setCipherFile(symCryption.encryptFile(fileBytes, key));
+				sendMessage(chatMessage);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
 	public void saveFile() {
 		try {
-			fileUtil.serializeDataOut(new KeyWrapper(cryption.getKeyPair(), serverPubKey));
+			fileUtil.serializeDataOut(new KeyWrapper(rsaCryption.getKeyPair(), serverPubKey));
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
@@ -228,6 +264,15 @@ public class Client {
 			e1.printStackTrace();
 		} catch (IOException e1) {
 			e1.printStackTrace();
+		}
+	}
+
+	public void transFile() {
+		File file;
+		int returnVal = fileChooser.showOpenDialog(cg);
+		if (returnVal == JFileChooser.APPROVE_OPTION) {
+			file = fileChooser.getSelectedFile();
+			sendEncryptFile(file);
 		}
 	}
 }

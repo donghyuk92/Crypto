@@ -19,7 +19,7 @@ public class ClientGUI extends JFrame implements ActionListener {
 	// to hold the server address an the port number
 	private JTextField tfServer, tfPort;
 	// to Logout and get the list of the users
-	private JButton login, logout, keyGen, sendPubKey, saveFile, loadFile;
+	private JButton login, logout, keyGen, sendPubKey, saveFile, loadFile, transFile;
 	// for the chat room
 	private JTextArea ta;
 	// if it is for connection
@@ -80,11 +80,13 @@ public class ClientGUI extends JFrame implements ActionListener {
 		sendPubKey = new JButton("Send public key");
 		sendPubKey.addActionListener(this);
 		sendPubKey.setEnabled(false);
-		saveFile = new JButton("save key");
+		saveFile = new JButton("Save key");
 		saveFile.addActionListener(this);
 		saveFile.setEnabled(false);
-		loadFile = new JButton("load key");
+		loadFile = new JButton("Load key");
 		loadFile.addActionListener(this);
+		transFile = new JButton("Transfer file");
+		transFile.addActionListener(this);
 
 		JPanel southPanel = new JPanel();
 		southPanel.add(login);
@@ -93,6 +95,7 @@ public class ClientGUI extends JFrame implements ActionListener {
 		southPanel.add(sendPubKey);
 		southPanel.add(saveFile);
 		southPanel.add(loadFile);
+		southPanel.add(transFile);
 		add(southPanel, BorderLayout.SOUTH);
 
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -163,6 +166,12 @@ public class ClientGUI extends JFrame implements ActionListener {
 			return;
 		}
 
+		if (o == transFile) {
+			display("transfer file");
+			client.transFile();
+			return;
+		}
+
 		// ok it is coming from the JTextField
 		if (connected) {
 			// just have to send the message
@@ -170,7 +179,6 @@ public class ClientGUI extends JFrame implements ActionListener {
 			tf.setText("");
 			return;
 		}
-
 
 		if (o == login) {
 			// ok it is a connection request
