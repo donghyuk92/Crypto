@@ -43,7 +43,7 @@ ServerGUI extends JFrame implements ActionListener, WindowListener {
 		saveFile = new JButton("save key");
 		saveFile.addActionListener(this);
 		saveFile.setEnabled(false);
-		loadFile = new JButton("loadFile key");
+		loadFile = new JButton("load key");
 		loadFile.addActionListener(this);
 		north.add(stopStart);
 		north.add(keyGen);

@@ -2,6 +2,7 @@ package Chat;
 
 import Crypto.KeyWrapper;
 import Crypto.RSACryption;
+import Crypto.RSASignature;
 import Crypto.SymCryption;
 import FileUtil.FileUtil;
 
@@ -37,6 +38,7 @@ public class Server {
 
 	private RSACryption rsaCryption;
 	private SymCryption symCryption;
+	private RSASignature rsaSignature;
 	private FileUtil fileUtil;
 
 	private KeyPair keyPair;
@@ -54,8 +56,9 @@ public class Server {
 		al = new ArrayList<ClientThread>();
 
 		this.rsaCryption = new RSACryption();
-		this.fileUtil = new FileUtil();
 		this.symCryption = new SymCryption();
+		this.rsaSignature = new RSASignature();
+		this.fileUtil = new FileUtil();
 	}
 
 	public void start() {
@@ -254,6 +257,10 @@ public class Server {
 						}
 						break;
 					case ChatMessage.FILE:
+						if(key == null) {
+							key = cm.getKey();
+						}
+
 						byte[] encryptedBytes = cm.getCipherFile();
 						byte[] decryptedBytes = null;
 						try {
@@ -344,7 +351,7 @@ public class Server {
 
 	public void saveFile() {
 		try {
-			fileUtil.serializeDataOutForServer(new KeyWrapper(rsaCryption.getKeyPair(), userPublicKey));
+			fileUtil.serializeDataOutForServer(new KeyWrapper(rsaCryption.getKeyPair(), userPublicKey, key));
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
@@ -355,6 +362,7 @@ public class Server {
 			KeyWrapper keyWrapper = fileUtil.serializeDataInForServer();
 			keyPair = keyWrapper.keyPair;
 			userPublicKey = keyWrapper.publicKey;
+			key = keyWrapper.key;
 		} catch (ClassNotFoundException e1) {
 			e1.printStackTrace();
 		} catch (IOException e1) {

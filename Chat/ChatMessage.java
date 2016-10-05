@@ -1,6 +1,7 @@
 package Chat;
 
 import java.io.Serializable;
+import java.security.Key;
 
 /*
  * This class defines the different type of messages that will be exchanged between the
@@ -22,6 +23,7 @@ public class ChatMessage implements Serializable {
 	private byte[] cipherText;
 	private byte[] cipherFile;
 	private byte[] encodedKey;
+	private Key key;
 
 	// constructor
 	ChatMessage(int type, String message) {
@@ -46,6 +48,10 @@ public class ChatMessage implements Serializable {
 		this.cipherFile = cipherFile;
 	}
 
+	public void setKey(Key key) {
+		this.key = key;
+	}
+
 	public String getMessage() {
 		return message;
 	}
@@ -60,5 +66,9 @@ public class ChatMessage implements Serializable {
 
 	public byte[] getCipherFile() {
 		return this.cipherFile;
+	}
+
+	public Key getKey() {
+		return this.key;
 	}
 }

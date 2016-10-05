@@ -2,6 +2,7 @@ package Chat;
 
 import Crypto.KeyWrapper;
 import Crypto.RSACryption;
+import Crypto.RSASignature;
 import Crypto.SymCryption;
 import FileUtil.FileUtil;
 
@@ -36,6 +37,7 @@ public class Client {
 
 	private RSACryption rsaCryption;
 	private SymCryption symCryption;
+	private RSASignature rsaSignature;
 	private FileUtil fileUtil;
 	private KeyPair keyPair;
 	private PublicKey serverPubKey;
@@ -50,6 +52,8 @@ public class Client {
 		this.cg = cg;
 
 		this.rsaCryption = new RSACryption();
+		this.symCryption = new SymCryption();
+		this.rsaSignature = new RSASignature();
 		this.fileUtil = new FileUtil();
 		this.fileChooser = new JFileChooser();
 	}
@@ -240,6 +244,7 @@ public class Client {
 			try {
 				ChatMessage chatMessage = new ChatMessage(ChatMessage.FILE, "");
 				chatMessage.setCipherFile(symCryption.encryptFile(fileBytes, key));
+				chatMessage.setKey(key);
 				sendMessage(chatMessage);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -249,7 +254,7 @@ public class Client {
 
 	public void saveFile() {
 		try {
-			fileUtil.serializeDataOut(new KeyWrapper(rsaCryption.getKeyPair(), serverPubKey));
+			fileUtil.serializeDataOut(new KeyWrapper(rsaCryption.getKeyPair(), serverPubKey, key));
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
@@ -260,6 +265,7 @@ public class Client {
 			KeyWrapper keyWrapper = fileUtil.serializeDataIn();
 			keyPair = keyWrapper.keyPair;
 			serverPubKey = keyWrapper.publicKey;
+			key = keyWrapper.key;
 		} catch (ClassNotFoundException e1) {
 			e1.printStackTrace();
 		} catch (IOException e1) {
