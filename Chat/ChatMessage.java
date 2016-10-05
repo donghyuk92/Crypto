@@ -1,7 +1,6 @@
 package Chat;
 
 import java.io.Serializable;
-import java.security.Key;
 
 /*
  * This class defines the different type of messages that will be exchanged between the
@@ -13,17 +12,13 @@ public class ChatMessage implements Serializable {
 
 	protected static final long serialVersionUID = 1112122200L;
 
-	// The different types of message sent by the Client.Client
-	// SENDKEY to receive the list of the users connected
-	// MESSAGE an ordinary message
-	// LOGOUT to disconnect from the Chat.Server
-	static final int SENDKEY = 0, MESSAGE = 1, LOGOUT = 2, FILE = 3;
+	static final int SEND_PUB_KEY = 0, MESSAGE = 1, LOGOUT = 2, FILE = 3, SIGN = 4, SEND_SECRET_KEY = 5;
 	private int type;
 	private String message;
 	private byte[] cipherText;
 	private byte[] cipherFile;
+	private byte[] cipherSecretKey;
 	private byte[] encodedKey;
-	private Key key;
 
 	// constructor
 	ChatMessage(int type, String message) {
@@ -48,8 +43,8 @@ public class ChatMessage implements Serializable {
 		this.cipherFile = cipherFile;
 	}
 
-	public void setKey(Key key) {
-		this.key = key;
+	public void setCipherSecretKey(byte[] cipherSecretKey) {
+		this.cipherSecretKey = cipherSecretKey;
 	}
 
 	public String getMessage() {
@@ -68,7 +63,7 @@ public class ChatMessage implements Serializable {
 		return this.cipherFile;
 	}
 
-	public Key getKey() {
-		return this.key;
+	public byte[] getCipherSecretKey() {
+		return this.cipherSecretKey;
 	}
 }

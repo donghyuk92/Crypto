@@ -36,6 +36,21 @@ public class RSACryption {
 		return b0;
 	}
 
+	public byte[] encryptMessageForByte(byte[] plainBytes, PublicKey publicKey) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+		for (byte b : plainBytes) System.out.printf("%02X ", b);
+		System.out.println("\n Plaintext Length : " + plainBytes.length + " byte");
+
+		System.out.println("\n=== RSA Encryption ===");
+		Cipher cipher = Cipher.getInstance("RSA");
+		cipher.init(Cipher.ENCRYPT_MODE, publicKey);
+		byte[] b0 = cipher.doFinal(plainBytes);
+		System.out.print("\n\n Ciphertext : ");
+		for (byte b : b0) System.out.printf("%02X ", b);
+		System.out.println("\n Ciphertext Length : " + b0.length + " byte");
+
+		return b0;
+	}
+
 	public byte[] decryptMessage(byte[] cipherText, PrivateKey privateKey) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
 		System.out.println("=== RSA Decryption ===");
 		Cipher cipher = Cipher.getInstance("RSA");

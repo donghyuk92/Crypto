@@ -1,5 +1,6 @@
 package Crypto;
 
+import javax.crypto.SecretKey;
 import java.io.Serializable;
 import java.security.Key;
 import java.security.KeyPair;
@@ -11,11 +12,11 @@ import java.security.PublicKey;
 public class KeyWrapper implements Serializable {
 	public KeyPair keyPair;
 	public PublicKey publicKey;
-	public Key key;
+	public SecretKey secretKey;
 
-	public KeyWrapper(KeyPair keyPair, PublicKey publicKey, Key key) {
+	public KeyWrapper(KeyPair keyPair, PublicKey publicKey, SecretKey secretKey) {
 		this.keyPair = keyPair;
 		this.publicKey = publicKey;
-		this.key = key;
+		this.secretKey = secretKey;
 	}
 }

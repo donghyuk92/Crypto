@@ -19,7 +19,7 @@ public class ClientGUI extends JFrame implements ActionListener {
 	// to hold the server address an the port number
 	private JTextField tfServer, tfPort;
 	// to Logout and get the list of the users
-	private JButton login, logout, keyGen, sendPubKey, saveFile, loadFile, transFile;
+	private JButton login, logout, keyGen, sendPubKey, sendSign, saveFile, loadFile, transFile;
 	// for the chat room
 	private JTextArea ta;
 	// if it is for connection
@@ -80,6 +80,9 @@ public class ClientGUI extends JFrame implements ActionListener {
 		sendPubKey = new JButton("Send public key");
 		sendPubKey.addActionListener(this);
 		sendPubKey.setEnabled(false);
+		sendSign = new JButton("Send signature");
+		sendSign.addActionListener(this);
+		sendSign.setEnabled(false);
 		saveFile = new JButton("Save key");
 		saveFile.addActionListener(this);
 		saveFile.setEnabled(false);
@@ -87,19 +90,21 @@ public class ClientGUI extends JFrame implements ActionListener {
 		loadFile.addActionListener(this);
 		transFile = new JButton("Transfer file");
 		transFile.addActionListener(this);
+		transFile.setEnabled(false);
 
 		JPanel southPanel = new JPanel();
 		southPanel.add(login);
 		southPanel.add(logout);
 		southPanel.add(keyGen);
 		southPanel.add(sendPubKey);
+		southPanel.add(sendSign);
 		southPanel.add(saveFile);
 		southPanel.add(loadFile);
 		southPanel.add(transFile);
 		add(southPanel, BorderLayout.SOUTH);
 
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
-		setSize(800, 600);
+		setSize(1000, 600);
 		setVisible(true);
 		tf.requestFocus();
 	}
@@ -116,6 +121,8 @@ public class ClientGUI extends JFrame implements ActionListener {
 		login.setEnabled(true);
 		logout.setEnabled(false);
 		sendPubKey.setEnabled(false);
+		sendSign.setEnabled(false);
+		transFile.setEnabled(false);
 		label.setText("Enter your username below");
 		tf.setText("Anonymous");
 		// reset port number and host name as a construction time
@@ -151,6 +158,12 @@ public class ClientGUI extends JFrame implements ActionListener {
 		if (o == sendPubKey) {
 			display("send public key");
 			client.sendPubKey();
+			return;
+		}
+
+		if (o == sendSign) {
+			display("send signature");
+			client.sendSign();
 			return;
 		}
 
@@ -212,9 +225,10 @@ public class ClientGUI extends JFrame implements ActionListener {
 
 			// disable login button
 			login.setEnabled(false);
-			// enable the 2 buttons
 			logout.setEnabled(true);
 			sendPubKey.setEnabled(true);
+			sendSign.setEnabled(true);
+			transFile.setEnabled(true);
 			// disable the Chat.Server and Port JTextField
 			tfServer.setEditable(false);
 			tfPort.setEditable(false);

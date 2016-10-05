@@ -2,17 +2,17 @@ package Crypto;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
-import java.security.Key;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import java.security.NoSuchAlgorithmException;
 
 public class SymCryption {
-	private Key key;
 
-	public Key keyGen() throws NoSuchAlgorithmException {
+	public SecretKey keyGen() throws NoSuchAlgorithmException {
 		System.out.println("\n\nAES Key Generation ");
 		KeyGenerator keyGen2 = KeyGenerator.getInstance("AES");
 		keyGen2.init(128);
-		Key key2 = keyGen2.generateKey();
+		SecretKey key2 = keyGen2.generateKey();
 		byte[] printKey2 = key2.getEncoded();
 
 		System.out.print("Secret key generation complete: ");
@@ -22,7 +22,7 @@ public class SymCryption {
 		return key2;
 	}
 
-	public byte[] encryptFile(byte[] fileBytes, Key key) throws Exception {
+	public byte[] encryptFile(byte[] fileBytes, SecretKey key) throws Exception {
 		System.out.println("\n\nAES Encryption ");
 		Cipher cipher2 = Cipher.getInstance("AES/ECB/PKCS5Padding");
 		cipher2.init(Cipher.ENCRYPT_MODE, key);
@@ -36,7 +36,7 @@ public class SymCryption {
 		return cipherText;
 	}
 
-	public byte[] decryptFile(byte[] cipherText, Key key) throws Exception {
+	public byte[] decryptFile(byte[] cipherText, SecretKey key) throws Exception {
 		Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
 		cipher.init(Cipher.DECRYPT_MODE, key);
 		byte[] decryptText = cipher.doFinal(cipherText);
@@ -45,9 +45,13 @@ public class SymCryption {
 		return decryptText;
 	}
 
+	public SecretKey getSecretKey(byte[] secretKey) {
+		return new SecretKeySpec(secretKey, 0, secretKey.length, "AES");
+	}
+
 	public static void main(String[] args) throws Exception {
 		SymCryption symCryption = new SymCryption();
-		symCryption.key = symCryption.keyGen();
+		//symCryption.key = symCryption.keyGen();
 		//byte[] encryptedMessage = symCryption.encryptFile("donghyuk", symCryption.key);
 		//symCryption.decryptFile(encryptedMessage, symCryption.key);
 	}

@@ -6,15 +6,16 @@ import Crypto.RSASignature;
 import Crypto.SymCryption;
 import FileUtil.FileUtil;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.security.Key;
-import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
-import java.security.PublicKey;
+import java.security.*;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -42,8 +43,10 @@ public class Server {
 	private FileUtil fileUtil;
 
 	private KeyPair keyPair;
+	private KeyPair keyPairForSign;
 	private PublicKey userPublicKey;
-	private Key key;
+	private SecretKey secretKey;
+	private Signature signature;
 
 	public Server(int port, ServerGUI sg) {
 		// GUI or not
@@ -249,29 +252,55 @@ public class Server {
 						display(username + " disconnected with a LOGOUT message.");
 						keepGoing = false;
 						break;
-					case ChatMessage.SENDKEY:
+					case ChatMessage.SEND_PUB_KEY:
 						try {
 							userPublicKey = rsaCryption.getPublicKey(cm.getEncodedKey());
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
 						break;
-					case ChatMessage.FILE:
-						if(key == null) {
-							key = cm.getKey();
+					case ChatMessage.SEND_SECRET_KEY:
+						if(secretKey == null) {
+							display("receive secretKey");
+							try {
+								secretKey = symCryption.getSecretKey(rsaCryption.decryptMessage(cm.getCipherSecretKey(), keyPair.getPrivate()));
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
 						}
-
-						byte[] encryptedBytes = cm.getCipherFile();
+						break;
+					case ChatMessage.SIGN:
 						byte[] decryptedBytes = null;
 						try {
-							decryptedBytes = symCryption.decryptFile(encryptedBytes, key);
+							decryptedBytes = symCryption.decryptFile(cm.getCipherFile(), secretKey);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
 
 						if (decryptedBytes != null) {
+							if(signature == null) {
+								signature = rsaSignature.getInstance();
+							}
 							try {
-								fileUtil.serializeFileOut(decryptedBytes);
+								String result = rsaSignature.verify(signature, decryptedBytes, userPublicKey, username);
+								display(username + " verification " +result);
+
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						}
+						break;
+					case ChatMessage.FILE:
+						byte[] decryptedBytes2 = null;
+						try {
+							decryptedBytes2 = symCryption.decryptFile(cm.getCipherFile(), secretKey);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+
+						if (decryptedBytes2 != null) {
+							try {
+								fileUtil.serializeFileOut(decryptedBytes2);
 							} catch (IOException e) {
 								e.printStackTrace();
 							}
@@ -341,7 +370,7 @@ public class Server {
 	}
 
 	public void sendPubKey() {
-		ChatMessage chatMessage = new ChatMessage(ChatMessage.SENDKEY, "");
+		ChatMessage chatMessage = new ChatMessage(ChatMessage.SEND_PUB_KEY, "");
 		chatMessage.setEncodedKey(keyPair.getPublic().getEncoded());
 		for (int i = 0; i < al.size(); ++i) {
 			ClientThread ct = al.get(i);
@@ -351,7 +380,7 @@ public class Server {
 
 	public void saveFile() {
 		try {
-			fileUtil.serializeDataOutForServer(new KeyWrapper(rsaCryption.getKeyPair(), userPublicKey, key));
+			fileUtil.serializeDataOutForServer(new KeyWrapper(rsaCryption.getKeyPair(), userPublicKey, secretKey));
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
@@ -362,7 +391,7 @@ public class Server {
 			KeyWrapper keyWrapper = fileUtil.serializeDataInForServer();
 			keyPair = keyWrapper.keyPair;
 			userPublicKey = keyWrapper.publicKey;
-			key = keyWrapper.key;
+			secretKey = keyWrapper.secretKey;
 		} catch (ClassNotFoundException e1) {
 			e1.printStackTrace();
 		} catch (IOException e1) {

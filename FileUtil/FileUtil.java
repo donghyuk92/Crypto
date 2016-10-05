@@ -49,6 +49,17 @@ public class FileUtil implements Serializable {
 		fos.close();
 	}
 
+	public void serializeFileOutForSign(byte[] ish) throws IOException {
+		String fileName = "./savedSign.txt";
+		FileOutputStream fos = new FileOutputStream(fileName);
+		fos.write(ish);
+		fos.close();
+	}
+
+	public File getSignedFile() {
+		return new File("./savedSign.txt");
+	}
+
 	public byte[] getBytesFromFile(File file) throws IOException {
 		InputStream is = new FileInputStream(file);
 		long length = file.length();

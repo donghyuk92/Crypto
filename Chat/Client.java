@@ -6,16 +6,17 @@ import Crypto.RSASignature;
 import Crypto.SymCryption;
 import FileUtil.FileUtil;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
 import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.security.Key;
-import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
-import java.security.PublicKey;
+import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 
 /*
@@ -41,7 +42,8 @@ public class Client {
 	private FileUtil fileUtil;
 	private KeyPair keyPair;
 	private PublicKey serverPubKey;
-	private Key key;
+	private SecretKey secretKey;
+	private Signature signature;
 
 	private JFileChooser fileChooser;
 
@@ -156,7 +158,7 @@ public class Client {
 						System.out.print("> ");
 					} else {
 						switch (msg.getType()) {
-							case ChatMessage.SENDKEY:
+							case ChatMessage.SEND_PUB_KEY:
 								serverPubKey = rsaCryption.getPublicKey(msg.getEncodedKey());
 								break;
 							case ChatMessage.MESSAGE:
@@ -207,9 +209,25 @@ public class Client {
 	}
 
 	public void sendPubKey() {
-		ChatMessage chatMessage = new ChatMessage(ChatMessage.SENDKEY, "");
+		ChatMessage chatMessage = new ChatMessage(ChatMessage.SEND_PUB_KEY, "");
 		chatMessage.setEncodedKey(keyPair.getPublic().getEncoded());
 		sendMessage(chatMessage);
+	}
+
+	public void sendSign() {
+		if (signature == null) {
+			signature = rsaSignature.getInstance();
+		}
+		byte[] resultSign = null;
+		try {
+			resultSign = rsaSignature.sign(signature, keyPair.getPrivate(), username);
+			fileUtil.serializeFileOutForSign(resultSign);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		if (resultSign != null) {
+			sendEncryptFile(fileUtil.getSignedFile(), "SIGN");
+		}
 	}
 
 	public void sendEncryptMessage() {
@@ -224,14 +242,25 @@ public class Client {
 		sendMessage(chatMessage);
 	}
 
-	public void sendEncryptFile(File file) {
-		if (key == null) {
+	public void sendEncryptSecretKey() {
+		try {
+			ChatMessage chatMessage = new ChatMessage(ChatMessage.SEND_SECRET_KEY, "");
+			chatMessage.setCipherSecretKey(rsaCryption.encryptMessageForByte(secretKey.getEncoded(), serverPubKey));
+			sendMessage(chatMessage);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void sendEncryptFile(File file, String TAG) {
+		if (secretKey == null) {
 			try {
-				key = symCryption.keyGen();
-			} catch (NoSuchAlgorithmException e) {
+				secretKey = symCryption.keyGen();
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
+		sendEncryptSecretKey();
 
 		byte[] fileBytes = null;
 		try {
@@ -242,10 +271,18 @@ public class Client {
 
 		if (fileBytes != null) {
 			try {
-				ChatMessage chatMessage = new ChatMessage(ChatMessage.FILE, "");
-				chatMessage.setCipherFile(symCryption.encryptFile(fileBytes, key));
-				chatMessage.setKey(key);
-				sendMessage(chatMessage);
+				sendEncryptMessage();
+				if (TAG.equals("SIGN")) {
+					ChatMessage chatMessage = new ChatMessage(ChatMessage.SIGN, "");
+					chatMessage.setCipherFile(symCryption.encryptFile(fileBytes, secretKey));
+					sendMessage(chatMessage);
+				} else if (TAG.equals("FILE")) {
+					ChatMessage chatMessage = new ChatMessage(ChatMessage.FILE, "");
+					chatMessage.setCipherFile(symCryption.encryptFile(fileBytes, secretKey));
+					sendMessage(chatMessage);
+				} else {
+
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -254,7 +291,7 @@ public class Client {
 
 	public void saveFile() {
 		try {
-			fileUtil.serializeDataOut(new KeyWrapper(rsaCryption.getKeyPair(), serverPubKey, key));
+			fileUtil.serializeDataOut(new KeyWrapper(rsaCryption.getKeyPair(), serverPubKey, secretKey));
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
@@ -265,7 +302,7 @@ public class Client {
 			KeyWrapper keyWrapper = fileUtil.serializeDataIn();
 			keyPair = keyWrapper.keyPair;
 			serverPubKey = keyWrapper.publicKey;
-			key = keyWrapper.key;
+			secretKey = keyWrapper.secretKey;
 		} catch (ClassNotFoundException e1) {
 			e1.printStackTrace();
 		} catch (IOException e1) {
@@ -278,7 +315,7 @@ public class Client {
 		int returnVal = fileChooser.showOpenDialog(cg);
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
 			file = fileChooser.getSelectedFile();
-			sendEncryptFile(file);
+			sendEncryptFile(file, "FILE");
 		}
 	}
 }

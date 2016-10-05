@@ -40,10 +40,10 @@ ServerGUI extends JFrame implements ActionListener, WindowListener {
 		sendPubKey = new JButton("Send public key");
 		sendPubKey.addActionListener(this);
 		sendPubKey.setEnabled(false);
-		saveFile = new JButton("save key");
+		saveFile = new JButton("Save key");
 		saveFile.addActionListener(this);
 		saveFile.setEnabled(false);
-		loadFile = new JButton("load key");
+		loadFile = new JButton("Load key");
 		loadFile.addActionListener(this);
 		north.add(stopStart);
 		north.add(keyGen);
