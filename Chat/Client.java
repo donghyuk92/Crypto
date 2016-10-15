@@ -291,7 +291,7 @@ public class Client {
 
 	public void saveFile() {
 		try {
-			fileUtil.serializeDataOut(new KeyWrapper(rsaCryption.getKeyPair(), serverPubKey, secretKey));
+			fileUtil.serializeDataOut(new KeyWrapper(keyPair, serverPubKey, secretKey));
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}

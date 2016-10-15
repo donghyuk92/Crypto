@@ -380,7 +380,7 @@ public class Server {
 
 	public void saveFile() {
 		try {
-			fileUtil.serializeDataOutForServer(new KeyWrapper(rsaCryption.getKeyPair(), userPublicKey, secretKey));
+			fileUtil.serializeDataOutForServer(new KeyWrapper(keyPair, userPublicKey, secretKey));
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}

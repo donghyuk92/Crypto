@@ -9,14 +9,12 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 
 public class RSACryption {
-	private KeyPair keyPair;
 
 	public KeyPair keyGen() throws NoSuchAlgorithmException {
 		System.out.println("\n=== RSA Key Generation ===");
 		KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
 		generator.initialize(2048);
-		keyPair = generator.generateKeyPair();
-		return keyPair;
+		return generator.generateKeyPair();
 	}
 
 	public byte[] encryptMessage(String plainText, PublicKey publicKey) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
@@ -61,10 +59,6 @@ public class RSACryption {
 		System.out.println("\n Recovered Plaintext Length : " + b1.length + " byte");
 
 		return b1;
-	}
-
-	public KeyPair getKeyPair() {
-		return this.keyPair;
 	}
 
 	public PublicKey getPublicKey(byte[] encodedKey) throws NoSuchAlgorithmException, InvalidKeySpecException {
